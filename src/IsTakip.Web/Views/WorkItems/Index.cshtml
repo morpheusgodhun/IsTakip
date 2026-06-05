@@ -1,0 +1,82 @@
+@model WorkItemListViewModel
+@{
+    ViewData["Title"] = "Görevler";
+}
+<div class="breadcrumbs">
+    <a asp-controller="Home" asp-action="Index">İş Yönetimi</a>
+    <span class="sep">/</span>
+    <span>Görevler</span>
+</div>
+<div class="page-head-row">
+    <h1 class="page-title">Görevler</h1>
+    <a class="btn btn-primary" asp-action="Create">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Oluştur
+    </a>
+</div>
+
+<form method="get" class="issue-toolbar">
+    <label class="nav-search" style="width:280px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" name="Search" value="@Model.Filter.Search" placeholder="Bu listede ara" />
+    </label>
+    <button type="submit" class="btn btn-default">Filtrele</button>
+    @if (!string.IsNullOrEmpty(Model.Filter.Search))
+    {
+        <a class="btn btn-subtle" asp-action="Index">Temizle</a>
+    }
+</form>
+
+<table class="issue-table">
+    <thead>
+        <tr>
+            <th style="width:36px"></th>
+            <th style="width:110px">Anahtar</th>
+            <th>Özet</th>
+            <th style="width:150px">Durum</th>
+            <th style="width:130px">Öncelik</th>
+            <th style="width:200px">Sorumlu</th>
+            <th style="width:120px">Son Tarih</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (!Model.Items.Any())
+        {
+            <tr><td colspan="7"><div class="table-empty">Kayıt bulunamadı.</div></td></tr>
+        }
+        @foreach (var item in Model.Items)
+        {
+            <tr onclick="location.href='@Url.Action("Details", new { id = item.Id })'" style="cursor:pointer">
+                <td>
+                    <span class="type-icon" style="--tc:@(item.TypeColor ?? "#1565C0")" title="@item.TypeName">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="9 11 12 14 20 6"/></svg>
+                    </span>
+                </td>
+                <td><a class="issue-key" asp-action="Details" asp-route-id="@item.Id" onclick="event.stopPropagation()">@item.Key</a></td>
+                <td class="issue-summary">@item.Title</td>
+                <td>
+                    <span class="lozenge" style="--lz:@(item.StateColor ?? "#5E6C84")">@item.StateName</span>
+                </td>
+                <td>
+                    @if (item.PriorityName != null)
+                    {
+                        <span class="prio"><span class="bar" style="--pc:@(item.PriorityColor ?? "#8590A2")"></span>@item.PriorityName</span>
+                    }
+                    else { <span class="muted">—</span> }
+                </td>
+                <td>
+                    @if (item.AssigneeName != null)
+                    {
+                        <span class="cell-flex">
+                            <span class="avatar sm" style="background:@UiHelpers.AvatarColor(item.AssigneeName)">@UiHelpers.Initials(item.AssigneeName)</span>
+                            @item.AssigneeName
+                        </span>
+                    }
+                    else { <span class="muted">Atanmamış</span> }
+                </td>
+                <td>@(item.DueDate?.ToString("dd MMM yyyy") ?? "—")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+<p class="muted" style="margin-top:10px;font-size:13px">Toplam @Model.TotalCount kayıt</p>

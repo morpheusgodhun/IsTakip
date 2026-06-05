@@ -1,0 +1,159 @@
+@{
+    var ctrl = ViewContext.RouteData.Values["controller"]?.ToString();
+    var isAuth = User.Identity?.IsAuthenticated == true;
+    string Active(string c) => string.Equals(ctrl, c, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] · Kosifler İş Takip</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+@if (isAuth)
+{
+    <header class="top-nav">
+        <div class="nav-left">
+            <button class="icon-btn" type="button" title="Uygulamalar" aria-label="Uygulamalar">
+                <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="5" r="1.8"/><circle cx="12" cy="5" r="1.8"/><circle cx="19" cy="5" r="1.8"/><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/><circle cx="5" cy="19" r="1.8"/><circle cx="12" cy="19" r="1.8"/><circle cx="19" cy="19" r="1.8"/></svg>
+            </button>
+            <a class="brand" asp-controller="Home" asp-action="Index">
+                <span class="brand-mark">K</span> KSF
+            </a>
+            <nav class="top-nav-links">
+                <a class="@Active("Home")" asp-controller="Home" asp-action="Index">Çalışmalarım</a>
+                <a class="@Active("Board")" asp-controller="Board" asp-action="Index">Panolar</a>
+                <a class="@Active("WorkItems")" asp-controller="WorkItems" asp-action="Index">Görevler</a>
+            </nav>
+        </div>
+        <div class="nav-right">
+            <a class="btn btn-primary" asp-controller="WorkItems" asp-action="Create">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Oluştur
+            </a>
+            <label class="nav-search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" placeholder="Ara" aria-label="Ara"
+                       onkeydown="if(event.key==='Enter'&&this.value){location.href='/WorkItems?Search='+encodeURIComponent(this.value)}" />
+            </label>
+            <button class="icon-btn" type="button" title="Bildirimler" aria-label="Bildirimler">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+            </button>
+            <button class="icon-btn" type="button" title="Yardım" aria-label="Yardım">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 2.5"/><line x1="12" y1="17" x2="12" y2="17"/></svg>
+            </button>
+            <div class="dropdown" id="userMenu">
+                <button class="icon-btn" type="button" onclick="document.getElementById('userMenu').classList.toggle('open')" style="width:auto;padding:2px">
+                    <span class="avatar" style="background:@UiHelpers.AvatarColor(User.Identity!.Name)">@UiHelpers.Initials(User.Identity!.Name)</span>
+                </button>
+                <div class="dropdown-menu">
+                    <div class="dd-user-head">
+                        <span class="avatar" style="background:@UiHelpers.AvatarColor(User.Identity!.Name)">@UiHelpers.Initials(User.Identity!.Name)</span>
+                        <div>
+                            <div class="nm">@User.Identity!.Name</div>
+                            <div class="em">Oturum açık</div>
+                        </div>
+                    </div>
+                    <a class="dropdown-item" asp-controller="Account" asp-action="ChangePassword">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        Şifre Değiştir
+                    </a>
+                    <form asp-controller="Account" asp-action="Logout" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="dropdown-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                            Çıkış Yap
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="app-shell">
+        <aside class="side-nav">
+            <div class="project-head">
+                <span class="proj-avatar">İY</span>
+                <div>
+                    <div class="proj-name">İş Yönetimi</div>
+                    <div class="proj-type">Kurumsal proje</div>
+                </div>
+            </div>
+
+            <div class="side-section-label">Planlama</div>
+            <a class="side-link @Active("Board")" asp-controller="Board" asp-action="Index">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="11" rx="1"/><rect x="17" y="4" width="4" height="14" rx="1"/></svg>
+                Pano
+            </a>
+            <a class="side-link @Active("WorkItems")" asp-controller="WorkItems" asp-action="Index">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                Görevler
+            </a>
+            <a class="side-link" href="#" onclick="return false">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                Çalışma Dönemleri
+            </a>
+            <a class="side-link" href="#" onclick="return false">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="7" x2="13" y2="7"/><line x1="7" y1="12" x2="20" y2="12"/><line x1="11" y1="17" x2="17" y2="17"/></svg>
+                Zaman Çizelgesi
+            </a>
+
+            <div class="side-section-label">Genel</div>
+            <a class="side-link @Active("Home")" asp-controller="Home" asp-action="Index">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+                Panel
+            </a>
+            <a class="side-link" href="#" onclick="return false">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                Raporlar
+            </a>
+            <a class="side-link" href="#" onclick="return false">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                Bilgi Bankası
+            </a>
+
+            @if (User.HasClaim(CurrentUserService.PermissionClaim, "User.Manage"))
+            {
+                <div class="side-section-label">Yönetim</div>
+                <a class="side-link @Active("Users")" asp-controller="Users" asp-action="Index">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    Kullanıcılar
+                </a>
+            }
+        </aside>
+
+        <main class="content">
+            @if (TempData["Success"] != null)
+            {
+                <div class="flash">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    @TempData["Success"]
+                </div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="flash err">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12" y2="16"/></svg>
+                    @TempData["Error"]
+                </div>
+            }
+            @RenderBody()
+        </main>
+    </div>
+}
+else
+{
+    @RenderBody()
+}
+
+    <script>
+        document.addEventListener('click', function (e) {
+            var menu = document.getElementById('userMenu');
+            if (menu && !menu.contains(e.target)) menu.classList.remove('open');
+        });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

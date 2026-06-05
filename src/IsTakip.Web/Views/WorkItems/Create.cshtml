@@ -1,0 +1,71 @@
+@model CreateWorkItemViewModel
+@{
+    ViewData["Title"] = "Yeni Kayıt";
+}
+<div class="breadcrumbs">
+    <a asp-controller="Home" asp-action="Index">İş Yönetimi</a>
+    <span class="sep">/</span>
+    <a asp-action="Index">Görevler</a>
+    <span class="sep">/</span>
+    <span>Yeni kayıt</span>
+</div>
+<h1 class="page-title">Kayıt oluştur</h1>
+
+<div class="card card-pad" style="max-width:720px">
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="form-errors" asp-validation-summary="All"></div>
+        }
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div class="field">
+                <label asp-for="WorkItemTypeId">Tür<span class="req">*</span></label>
+                <select asp-for="WorkItemTypeId" asp-items="Model.Types" class="select">
+                    <option value="">Tür seçin</option>
+                </select>
+            </div>
+            <div class="field">
+                <label asp-for="PriorityId">Öncelik</label>
+                <select asp-for="PriorityId" asp-items="Model.Priorities" class="select">
+                    <option value="">Öncelik seçin</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="field">
+            <label asp-for="Title">Başlık<span class="req">*</span></label>
+            <input asp-for="Title" class="input" placeholder="Kısa ve açıklayıcı bir başlık" />
+        </div>
+
+        <div class="field">
+            <label asp-for="Description">Açıklama</label>
+            <textarea asp-for="Description" class="input" rows="5" placeholder="Detayları buraya yazın"></textarea>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+            <div class="field">
+                <label asp-for="DepartmentId">Departman</label>
+                <select asp-for="DepartmentId" asp-items="Model.Departments" class="select">
+                    <option value="">Departman seçin</option>
+                </select>
+            </div>
+            <div class="field">
+                <label asp-for="AssigneeUserId">Sorumlu</label>
+                <select asp-for="AssigneeUserId" asp-items="Model.Users" class="select">
+                    <option value="">Atanmamış</option>
+                </select>
+            </div>
+            <div class="field">
+                <label asp-for="DueDate">Son Tarih</label>
+                <input asp-for="DueDate" type="date" class="input" />
+            </div>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:8px">
+            <button type="submit" class="btn btn-primary">Oluştur</button>
+            <a asp-action="Index" class="btn btn-subtle">Vazgeç</a>
+        </div>
+    </form>
+</div>

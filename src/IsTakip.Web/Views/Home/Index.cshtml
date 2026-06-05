@@ -1,0 +1,57 @@
+@{
+    ViewData["Title"] = "Panel";
+}
+<div class="breadcrumbs">
+    <a asp-controller="Home" asp-action="Index">İş Yönetimi</a>
+    <span class="sep">/</span>
+    <span>Panel</span>
+</div>
+<div class="page-head-row">
+    <h1 class="page-title">Panel</h1>
+    <a class="btn btn-default" asp-controller="Board" asp-action="Index">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="11" rx="1"/><rect x="17" y="4" width="4" height="14" rx="1"/></svg>
+        Panoya Git
+    </a>
+</div>
+
+<div class="stat-grid">
+    <div class="stat">
+        <span class="stat-ic" style="background:#0C66E4">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
+        </span>
+        <div>
+            <div class="stat-num">@ViewBag.OpenCount</div>
+            <div class="stat-lbl">Açık kayıt</div>
+        </div>
+    </div>
+    <div class="stat">
+        <span class="stat-ic" style="background:#22A06B">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </span>
+        <div>
+            <div class="stat-num">@ViewBag.DoneCount</div>
+            <div class="stat-lbl">Tamamlanan</div>
+        </div>
+    </div>
+    <div class="stat">
+        <span class="stat-ic" style="background:#6554C0">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+        </span>
+        <div>
+            <div class="stat-num">@ViewBag.TypeCount</div>
+            <div class="stat-lbl">Görev türü</div>
+        </div>
+    </div>
+</div>
+
+<div class="card card-pad" style="margin-top:24px;max-width:640px">
+    <div class="panel-title">Hızlı işlemler</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <a class="btn btn-primary" asp-controller="WorkItems" asp-action="Create">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Yeni Kayıt
+        </a>
+        <a class="btn btn-subtle" asp-controller="WorkItems" asp-action="Index">Tüm görevler</a>
+        <a class="btn btn-subtle" asp-controller="Board" asp-action="Index">İş panosu</a>
+    </div>
+</div>

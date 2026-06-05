@@ -1,0 +1,95 @@
+@model BoardViewModel
+@{
+    ViewData["Title"] = "Pano";
+}
+<div class="breadcrumbs">
+    <a asp-controller="Home" asp-action="Index">İş Yönetimi</a>
+    <span class="sep">/</span>
+    <span>Pano</span>
+</div>
+<div class="page-head-row">
+    <h1 class="page-title">Pano</h1>
+    <form method="get" id="typeForm">
+        <select name="typeId" class="select" style="width:220px" onchange="document.getElementById('typeForm').submit()">
+            <option value="">Tüm türler</option>
+            @foreach (var t in Model.Types)
+            {
+                <option value="@t.Value" selected="@(Model.WorkItemTypeId?.ToString() == t.Value)">@t.Text</option>
+            }
+        </select>
+    </form>
+</div>
+
+<div class="board-wrap">
+    <div class="board">
+        @foreach (var col in Model.Columns)
+        {
+            <div class="board-col" data-state-id="@col.StateId">
+                <div class="board-col-head">
+                    <span style="color:@(col.ColorHex ?? "#626F86")">●</span>
+                    @col.StateName
+                    <span class="count">@col.Items.Count</span>
+                </div>
+                <div class="board-col-body">
+                    @foreach (var item in col.Items)
+                    {
+                        <div class="issue-card" draggable="true" data-id="@item.Id"
+                             style="border-left-color:@(item.PriorityColor ?? "#DFE1E6")"
+                             onclick="location.href='@Url.Action("Details", "WorkItems", new { id = item.Id })'">
+                            <div class="ic-summary">@item.Title</div>
+                            <div class="ic-foot">
+                                <span class="ic-key">
+                                    <span class="type-icon" style="--tc:@(item.TypeColor ?? "#1565C0")" title="@item.TypeName">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="9 11 12 14 20 6"/></svg>
+                                    </span>
+                                    @item.Key
+                                </span>
+                                @if (item.AssigneeName != null)
+                                {
+                                    <span class="avatar sm" style="background:@UiHelpers.AvatarColor(item.AssigneeName)" title="@item.AssigneeName">@UiHelpers.Initials(item.AssigneeName)</span>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+<form id="afForm" style="display:none">@Html.AntiForgeryToken()</form>
+<script>
+(function () {
+    var token = document.querySelector('#afForm input[name="__RequestVerificationToken"]')?.value;
+    var draggedId = null;
+
+    document.querySelectorAll('.issue-card').forEach(function (card) {
+        card.addEventListener('dragstart', function (e) {
+            draggedId = card.dataset.id;
+            e.dataTransfer.effectAllowed = 'move';
+            setTimeout(function () { card.style.opacity = '0.4'; }, 0);
+        });
+        card.addEventListener('dragend', function () { card.style.opacity = '1'; });
+    });
+
+    document.querySelectorAll('.board-col').forEach(function (col) {
+        col.addEventListener('dragover', function (e) { e.preventDefault(); col.classList.add('drag-over'); });
+        col.addEventListener('dragleave', function () { col.classList.remove('drag-over'); });
+        col.addEventListener('drop', async function (e) {
+            e.preventDefault();
+            col.classList.remove('drag-over');
+            if (!draggedId) return;
+            var body = new URLSearchParams();
+            body.append('workItemId', draggedId);
+            body.append('toStateId', col.dataset.stateId);
+            if (token) body.append('__RequestVerificationToken', token);
+            var res = await fetch('@Url.Action("ChangeState", "Board")', { method: 'POST', body: body });
+            var data = await res.json();
+            if (data.success) { location.reload(); }
+            else { alert(data.error || 'Durum değiştirilemedi.'); }
+        });
+    });
+})();
+</script>
+}

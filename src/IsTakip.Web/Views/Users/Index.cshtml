@@ -1,0 +1,54 @@
+@model List<UserListItemVM>
+@{
+    ViewData["Title"] = "Kullanıcılar";
+}
+<div class="breadcrumbs">
+    <a asp-controller="Home" asp-action="Index">İş Yönetimi</a>
+    <span class="sep">/</span>
+    <span>Kullanıcılar</span>
+</div>
+<div class="page-head-row">
+    <h1 class="page-title">Kullanıcılar</h1>
+    <a class="btn btn-primary" asp-action="Create">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Yeni Kullanıcı
+    </a>
+</div>
+
+<table class="issue-table">
+    <thead>
+        <tr>
+            <th>Kullanıcı</th>
+            <th style="width:160px">Kullanıcı Adı</th>
+            <th style="width:180px">Departman</th>
+            <th style="width:160px">Roller</th>
+            <th style="width:90px">Durum</th>
+            <th style="width:120px"></th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (!Model.Any())
+        {
+            <tr><td colspan="6"><div class="table-empty">Kullanıcı bulunamadı.</div></td></tr>
+        }
+        @foreach (var u in Model)
+        {
+            <tr>
+                <td>
+                    <span class="cell-flex">
+                        <span class="avatar sm" style="background:@UiHelpers.AvatarColor(u.FullName)">@UiHelpers.Initials(u.FullName)</span>
+                        <span>
+                            <div>@u.FullName</div>
+                            <div class="muted" style="font-size:12px">@(u.Title ?? u.Email)</div>
+                        </span>
+                    </span>
+                </td>
+                <td class="muted">@u.UserName</td>
+                <td>@(u.DepartmentName ?? "—")</td>
+                <td>@(string.IsNullOrEmpty(u.Roles) ? "—" : u.Roles)</td>
+                <td><span class="lozenge" style="--lz:@(u.Status == "Aktif" ? "#22A06B" : "#5E6C84")">@u.Status</span></td>
+                <td><a class="btn btn-subtle" asp-action="ResetPassword" asp-route-id="@u.Id">Şifre Sıfırla</a></td>
+            </tr>
+        }
+    </tbody>
+</table>

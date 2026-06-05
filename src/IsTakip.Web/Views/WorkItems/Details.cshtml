@@ -1,0 +1,143 @@
+@model WorkItemDetailsPageVM
+@{
+    ViewData["Title"] = Model.Item.Key;
+    var item = Model.Item;
+}
+<div class="breadcrumbs">
+    <a asp-controller="Home" asp-action="Index">İş Yönetimi</a>
+    <span class="sep">/</span>
+    <a asp-action="Index">Görevler</a>
+    <span class="sep">/</span>
+    <span class="cell-flex">
+        <span class="type-icon" title="@item.TypeName"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="9 11 12 14 20 6"/></svg></span>
+        @item.Key
+    </span>
+</div>
+
+<div class="page-head-row" style="align-items:center;margin-bottom:8px">
+    <h1 class="page-title" style="margin:0">@item.Title</h1>
+    @if (Model.IsManager)
+    {
+        <form asp-action="Delete" method="post" onsubmit="return confirm('Bu kaydı silmek istediğinize emin misiniz?');">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@item.Id" />
+            <button type="submit" class="btn btn-default" style="color:#AE2A19">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                Sil
+            </button>
+        </form>
+    }
+</div>
+
+<!-- Durum değiştirici: herkes Tamamlandı/kapanış dışındaki durumlara alabilir -->
+<form asp-action="ChangeState" method="post" class="status-changer" style="margin-bottom:24px">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" value="@item.Id" />
+    <select name="toStateId" class="select">
+        @foreach (var s in Model.States)
+        {
+            var isDone = s.Category == StateCategory.Tamamlandi;
+            if (isDone && !Model.IsManager && s.Id != item.CurrentStateId)
+            {
+                continue; // kapanış durumlarını yönetici olmayanlara gösterme
+            }
+            <option value="@s.Id" selected="@(s.Id == item.CurrentStateId)">@s.Name</option>
+        }
+    </select>
+    <button type="submit" class="btn btn-primary">Durumu Güncelle</button>
+    @if (!Model.IsManager)
+    {
+        <span class="muted" style="font-size:12px">Tamamlama/kapatma yetkisi yöneticilerdedir.</span>
+    }
+</form>
+
+<div class="detail-grid">
+    <div>
+        <div class="desc-block">
+            <h3>Açıklama</h3>
+            <div>@(string.IsNullOrWhiteSpace(item.Description) ? "Açıklama eklenmemiş." : item.Description)</div>
+        </div>
+
+        <div class="comments">
+            <h3>Yorumlar (@Model.Comments.Count)</h3>
+
+            <div class="comment">
+                <span class="avatar" style="background:@UiHelpers.AvatarColor(User.Identity!.Name)">@UiHelpers.Initials(User.Identity!.Name)</span>
+                <form asp-action="AddComment" method="post" style="flex:1">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@item.Id" />
+                    <textarea name="body" class="input" rows="3" placeholder="Bir yorum ekleyin..." required></textarea>
+                    <div style="margin-top:8px">
+                        <button type="submit" class="btn btn-primary">Yorum Ekle</button>
+                    </div>
+                </form>
+            </div>
+
+            @foreach (var c in Model.Comments)
+            {
+                <div class="comment">
+                    <span class="avatar" style="background:@UiHelpers.AvatarColor(c.AuthorName)">@UiHelpers.Initials(c.AuthorName)</span>
+                    <div class="c-body">
+                        <div class="c-head">
+                            <span class="c-name">@c.AuthorName</span>
+                            <span class="c-time">@c.CreatedAtUtc.ToLocalTime().ToString("dd MMM yyyy HH:mm")</span>
+                        </div>
+                        <div class="c-text">@c.Body</div>
+                    </div>
+                </div>
+            }
+            @if (!Model.Comments.Any())
+            {
+                <p class="muted" style="font-size:13px">Henüz yorum yok. İlk yorumu siz ekleyin.</p>
+            }
+        </div>
+    </div>
+
+    <aside class="detail-side">
+        <div class="ds-head">Detaylar</div>
+        <div class="detail-row">
+            <dt>Durum</dt>
+            <dd><span class="lozenge" style="--lz:#0C66E4">@item.StateName</span></dd>
+        </div>
+        <div class="detail-row">
+            <dt>Tür</dt>
+            <dd>@item.TypeName</dd>
+        </div>
+        <div class="detail-row">
+            <dt>Öncelik</dt>
+            <dd>@(item.PriorityName ?? "—")</dd>
+        </div>
+        <div class="detail-row">
+            <dt>Sorumlu</dt>
+            <dd>
+                @if (item.AssigneeName != null)
+                {
+                    <span class="cell-flex"><span class="avatar sm" style="background:@UiHelpers.AvatarColor(item.AssigneeName)">@UiHelpers.Initials(item.AssigneeName)</span>@item.AssigneeName</span>
+                }
+                else { <span class="muted">Atanmamış</span> }
+            </dd>
+        </div>
+        <div class="detail-row">
+            <dt>Talep Eden</dt>
+            <dd>
+                @if (item.ReporterName != null)
+                {
+                    <span class="cell-flex"><span class="avatar sm" style="background:@UiHelpers.AvatarColor(item.ReporterName)">@UiHelpers.Initials(item.ReporterName)</span>@item.ReporterName</span>
+                }
+                else { <span class="muted">—</span> }
+            </dd>
+        </div>
+        <div class="detail-row">
+            <dt>Başlangıç</dt>
+            <dd>@(item.StartDate?.ToString("dd MMM yyyy") ?? "—")</dd>
+        </div>
+        <div class="detail-row">
+            <dt>Son Tarih</dt>
+            <dd>@(item.DueDate?.ToString("dd MMM yyyy") ?? "—")</dd>
+        </div>
+        <div class="detail-row">
+            <dt>Oluşturma</dt>
+            <dd>@item.CreatedAtUtc.ToLocalTime().ToString("dd MMM yyyy HH:mm")</dd>
+        </div>
+    </aside>
+</div>
