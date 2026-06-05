@@ -1,0 +1,43 @@
+@model PersonelIadeVM
+@{ ViewData["Title"] = "Personel İadesi"; }
+<div class="breadcrumbs"><a asp-controller="Home" asp-action="Index">İş Yönetimi</a><span class="sep">/</span><a asp-action="Index">Envanter</a><span class="sep">/</span><span>Personel İadesi</span></div>
+<h1 class="page-title">Personel İadesi (İşten Çıkış)</h1>
+<p class="muted" style="margin-top:-8px">Personeli seçin; üzerindeki tüm zimmetleri tek tek veya toplu iade alın.</p>
+
+<div class="card card-pad" style="max-width:520px;margin-bottom:16px">
+    <form method="get" asp-action="PersonelIade" style="display:flex;gap:8px;align-items:flex-end">
+        <div class="field" style="flex:1;margin:0"><label>Personel</label><select name="userId" asp-items="Model.Users" class="select" onchange="this.form.submit()"><option value="">Seçin</option></select></div>
+        <button type="submit" class="btn btn-default">Getir</button>
+    </form>
+</div>
+
+@if (Model.SelectedUserId != null)
+{
+    <form asp-action="PersonelIade" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="userId" value="@Model.SelectedUserId" />
+        <table class="issue-table">
+            <thead><tr><th style="width:40px"></th><th>Kalem</th><th style="width:140px">Kod</th><th style="width:150px">Kategori</th><th style="width:150px">Teslim Tarihi</th></tr></thead>
+            <tbody>
+                @if (!Model.Items.Any()) { <tr><td colspan="5"><div class="table-empty">Bu personelde aktif zimmet yok.</div></td></tr> }
+                @foreach (var r in Model.Items)
+                {
+                    <tr>
+                        <td><input type="checkbox" name="assignmentIds" value="@r.AssignmentId" style="width:16px;height:16px" /></td>
+                        <td>@r.ItemName</td>
+                        <td>@(r.Code ?? "—")</td>
+                        <td>@(r.CategoryName ?? "—")</td>
+                        <td class="muted">@r.AssignedAtUtc.ToLocalTime().ToString("dd MMM yyyy")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        @if (Model.Items.Any())
+        {
+            <div style="display:flex;gap:10px;margin-top:12px">
+                <button type="submit" name="all" value="false" class="btn btn-default">Seçilenleri İade Al</button>
+                <button type="submit" name="all" value="true" class="btn btn-primary" onclick="return confirm('Personelin TÜM zimmetleri iade alınsın mı?');">Tümünü İade Al</button>
+            </div>
+        }
+    </form>
+}

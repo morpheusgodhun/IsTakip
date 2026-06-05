@@ -1,0 +1,47 @@
+@model InventoryDetailsVM
+@{ ViewData["Title"] = Model.Name; }
+<div class="breadcrumbs"><a asp-controller="Home" asp-action="Index">İş Yönetimi</a><span class="sep">/</span><a asp-action="Index">Envanter</a><span class="sep">/</span><span>@Model.Name</span></div>
+<div class="page-head-row">
+    <h1 class="page-title">@Model.Name</h1>
+    <div style="display:flex;gap:8px">
+        @if (Model.IsAssigned)
+        {
+            <form asp-action="Return" asp-route-itemId="@Model.Id" method="post" onsubmit="return confirm('İade alınsın mı?');">@Html.AntiForgeryToken()<button class="btn btn-primary" type="submit">İade Al</button></form>
+        }
+        else
+        {
+            <a class="btn btn-primary" asp-action="Assign" asp-route-id="@Model.Id">Zimmetle / Teslim Et</a>
+        }
+        <a class="btn btn-subtle" asp-action="ItemEdit" asp-route-id="@Model.Id">Düzenle</a>
+    </div>
+</div>
+
+<div class="card card-pad" style="max-width:760px;margin-bottom:16px">
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px 24px">
+        <div><span class="muted" style="font-size:12px">Durum</span><br /><span class="lozenge" style="--lz:@Model.StatusColor">@Model.StatusText</span></div>
+        <div><span class="muted" style="font-size:12px">Zimmetli kişi</span><br />@(Model.HolderName ?? "—")</div>
+        <div><span class="muted" style="font-size:12px">Kategori</span><br />@(Model.CategoryName ?? "—")</div>
+        <div><span class="muted" style="font-size:12px">Demirbaş No</span><br />@(Model.Code ?? "—")</div>
+        <div><span class="muted" style="font-size:12px">Seri No</span><br />@(Model.SerialNo ?? "—")</div>
+        <div><span class="muted" style="font-size:12px">Notlar</span><br />@(Model.Notes ?? "—")</div>
+    </div>
+</div>
+
+<h2 style="font-size:16px;margin-bottom:10px">Zimmet Geçmişi</h2>
+<table class="issue-table">
+    <thead><tr><th>Teslim Edilen</th><th>Teslim Eden</th><th style="width:150px">Teslim Tarihi</th><th style="width:150px">İade Tarihi</th><th>İade Alan</th><th>Not</th></tr></thead>
+    <tbody>
+        @if (!Model.History.Any()) { <tr><td colspan="6"><div class="table-empty">Henüz zimmet hareketi yok.</div></td></tr> }
+        @foreach (var h in Model.History)
+        {
+            <tr>
+                <td>@h.AssignedToName @if (h.IsActive) { <span class="lozenge" style="--lz:#0C66E4">Aktif</span> }</td>
+                <td>@(h.AssignedByName ?? "—")</td>
+                <td>@h.AssignedAtUtc.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
+                <td>@(h.ReturnedAtUtc?.ToLocalTime().ToString("dd MMM yyyy HH:mm") ?? "—")</td>
+                <td>@(h.ReturnedByName ?? "—")</td>
+                <td class="muted">@(h.Notes ?? "")</td>
+            </tr>
+        }
+    </tbody>
+</table>

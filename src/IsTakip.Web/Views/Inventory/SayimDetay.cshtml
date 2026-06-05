@@ -1,0 +1,33 @@
+@model SayimDetayVM
+@{ ViewData["Title"] = Model.Name; }
+<div class="breadcrumbs"><a asp-controller="Home" asp-action="Index">İş Yönetimi</a><span class="sep">/</span><a asp-action="Sayim">Sayım</a><span class="sep">/</span><span>@Model.Name</span></div>
+<div class="page-head-row">
+    <h1 class="page-title">@Model.Name</h1>
+    @if (Model.Completed) { <span class="lozenge" style="--lz:#22A06B">Tamamlandı</span> }
+</div>
+<form asp-action="SayimSave" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" value="@Model.Id" />
+    <table class="issue-table">
+        <thead><tr><th style="width:60px">Bulundu</th><th>Kalem</th><th style="width:140px">Kod</th><th style="width:180px">Zimmetli Kişi</th></tr></thead>
+        <tbody>
+            @if (!Model.Lines.Any()) { <tr><td colspan="4"><div class="table-empty">Satır yok.</div></td></tr> }
+            @foreach (var l in Model.Lines)
+            {
+                <tr>
+                    <td><input type="checkbox" name="foundLineIds" value="@l.LineId" @(l.IsFound ? "checked" : "") @(Model.Completed ? "disabled" : "") style="width:16px;height:16px" /></td>
+                    <td>@l.ItemName</td>
+                    <td>@(l.Code ?? "—")</td>
+                    <td>@(l.HolderName ?? "—")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    @if (!Model.Completed)
+    {
+        <div style="display:flex;gap:10px;margin-top:12px">
+            <button type="submit" class="btn btn-primary">Kaydet</button>
+            <button type="submit" formaction="@Url.Action("SayimComplete")" onclick="return confirm('Sayım tamamlansın mı? (kilitlenecek)');" class="btn btn-default">Sayımı Tamamla</button>
+        </div>
+    }
+</form>

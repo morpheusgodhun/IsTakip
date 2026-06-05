@@ -37,6 +37,7 @@ public static class DependencyInjection
 
 
         services.AddScoped<IWorkItemService, WorkItemService>();
+        services.AddScoped<IsTakip.Application.Common.IAutomationEngine, IsTakip.Infrastructure.Services.AutomationEngine>();
         services.AddScoped<ApplicationDbSeeder>();
 
         return services;

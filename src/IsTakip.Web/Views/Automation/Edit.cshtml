@@ -1,0 +1,70 @@
+@model AutomationRuleEditVM
+@{
+    var isNew = Model.Id == 0;
+    ViewData["Title"] = isNew ? "Yeni Kural" : "Kural Düzenle";
+}
+<div class="breadcrumbs">
+    <a asp-controller="Home" asp-action="Index">İş Yönetimi</a>
+    <span class="sep">/</span><a asp-action="Index">Otomasyon</a>
+    <span class="sep">/</span><span>@(isNew ? "Yeni" : Model.Name)</span>
+</div>
+<h1 class="page-title">@(isNew ? "Yeni otomasyon kuralı" : "Kural düzenle")</h1>
+
+<form asp-action="Edit" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    @if (!ViewData.ModelState.IsValid) { <div class="form-errors" asp-validation-summary="All"></div> }
+
+    <div class="card card-pad" style="max-width:840px;margin-bottom:16px">
+        <div style="display:grid;grid-template-columns:2fr 1fr auto;gap:16px;align-items:end">
+            <div class="field" style="margin:0"><label asp-for="Name">Kural Adı<span class="req">*</span></label><input asp-for="Name" class="input" /></div>
+            <div class="field" style="margin:0"><label asp-for="TriggerEvent">Tetikleyici</label><select asp-for="TriggerEvent" asp-items="Model.Triggers" class="select"></select></div>
+            <label style="display:flex;align-items:center;gap:8px;padding-bottom:10px"><input type="checkbox" asp-for="IsActive" style="width:16px;height:16px" /> Aktif</label>
+        </div>
+    </div>
+
+    <div class="card card-pad" style="max-width:840px;margin-bottom:16px">
+        <div class="panel-title" style="margin-bottom:6px">Koşullar (hepsi sağlanmalı — VE)</div>
+        <p class="muted" style="font-size:12px;margin-top:0">Değer alanına ilgili kaydın <strong>Id</strong>'sini yazın (ör. Öncelik = 1).</p>
+        @for (int i = 0; i < Model.Conditions.Count; i++)
+        {
+            var c = Model.Conditions[i];
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:8px">
+                <select name="Conditions[@i].FieldKey" class="select">
+                    @foreach (var f in Model.FieldKeys)
+                    { <option value="@f.Value" selected="@(f.Value == (c.FieldKey ?? ""))">@f.Text</option> }
+                </select>
+                <select name="Conditions[@i].Operator" class="select">
+                    @foreach (var o in Model.Operators)
+                    { <option value="@o.Value" selected="@(o.Value == (c.Operator ?? "eq"))">@o.Text</option> }
+                </select>
+                <input type="text" name="Conditions[@i].Value" value="@c.Value" class="input" placeholder="Değer (Id)" />
+            </div>
+        }
+    </div>
+
+    <div class="card card-pad" style="max-width:840px;margin-bottom:16px">
+        <div class="panel-title" style="margin-bottom:6px">Aksiyonlar</div>
+        <p class="muted" style="font-size:12px;margin-top:0">
+            <strong>Ata</strong>: Kullanıcı seç · <strong>Bildirim</strong>: Kullanıcı + mesaj · <strong>Durum Değiştir</strong>: Değer = Durum Id · <strong>Etiket Ekle</strong>: Değer = Etiket Id
+        </p>
+        @for (int i = 0; i < Model.Actions.Count; i++)
+        {
+            var a = Model.Actions[i];
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:8px">
+                <select name="Actions[@i].ActionType" class="select">
+                    @foreach (var t in Model.ActionTypes)
+                    { <option value="@t.Value" selected="@(t.Value == a.ActionType.ToString())">@t.Text</option> }
+                </select>
+                <select name="Actions[@i].TargetUserId" class="select">
+                    <option value="">Kullanıcı (gerekirse)</option>
+                    @foreach (var u in Model.Users)
+                    { <option value="@u.Value" selected="@(a.TargetUserId.HasValue && u.Value == a.TargetUserId.Value.ToString())">@u.Text</option> }
+                </select>
+                <input type="text" name="Actions[@i].Value" value="@a.Value" class="input" placeholder="Mesaj / Durum Id / Etiket Id" />
+            </div>
+        }
+    </div>
+
+    <div style="display:flex;gap:10px"><button type="submit" class="btn btn-primary">Kaydet</button><a asp-action="Index" class="btn btn-subtle">Vazgeç</a></div>
+</form>

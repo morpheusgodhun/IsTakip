@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using IsTakip.Application.Common;
 using IsTakip.Application.WorkItems;
 using IsTakip.Domain.Common;
@@ -12,11 +13,15 @@ public class WorkItemService : IWorkItemService
 {
     private readonly AppDbContext _db;
     private readonly ICurrentUserService _currentUser;
+    private readonly INotificationService _notify;
+    private readonly IAutomationEngine _automation;
 
-    public WorkItemService(AppDbContext db, ICurrentUserService currentUser)
+    public WorkItemService(AppDbContext db, ICurrentUserService currentUser, INotificationService notify, IAutomationEngine automation)
     {
         _db = db;
         _currentUser = currentUser;
+        _notify = notify;
+        _automation = automation;
     }
 
     // "Yönetici" yetkisi: silme ve kapanış/tamamlama işlemleri buna bağlıdır.
@@ -116,6 +121,7 @@ public class WorkItemService : IWorkItemService
             ReporterUserId = _currentUser.UserId,
             DepartmentId = request.DepartmentId,
             ProjectId = request.ProjectId,
+            ParentWorkItemId = request.ParentWorkItemId,
             DueDate = request.DueDate,
             WorkflowId = workflowId.Value,
             CurrentStateId = initialState.Id
@@ -133,6 +139,41 @@ public class WorkItemService : IWorkItemService
             ChangedAtUtc = DateTime.UtcNow
         });
         await _db.SaveChangesAsync(ct);
+
+        // Form Tasarımcısı alan değerlerini kaydet (yalnızca kapsamı uyan ve dolu olanlar).
+        if (request.CustomFields.Count > 0)
+        {
+            var defIds = request.CustomFields.Keys.ToList();
+            var defs = await _db.CustomFieldDefinitions
+                .Where(d => defIds.Contains(d.Id))
+                .Select(d => new { d.Id, d.WorkItemTypeId })
+                .ToListAsync(ct);
+
+            foreach (var def in defs)
+            {
+                if (def.WorkItemTypeId != null && def.WorkItemTypeId != workItem.WorkItemTypeId) continue;
+                if (!request.CustomFields.TryGetValue(def.Id, out var val) || string.IsNullOrWhiteSpace(val)) continue;
+                _db.WorkItemCustomFieldValues.Add(new WorkItemCustomFieldValue
+                {
+                    WorkItemId = workItem.Id,
+                    CustomFieldDefinitionId = def.Id,
+                    ValueText = val.Trim()
+                });
+            }
+            await _db.SaveChangesAsync(ct);
+        }
+
+        // Atanan kişiye (kendisi değilse) bildirim gönder.
+        if (workItem.AssigneeUserId is { } assignee && assignee != _currentUser.UserId)
+        {
+            await _notify.NotifyAsync(assignee,
+                "Size yeni bir iş atandı",
+                $"{workItem.Key} · {workItem.Title}",
+                $"/WorkItems/Details/{workItem.Id}",
+                NotificationType.Atama, ct);
+        }
+
+        await _automation.RunAsync(AutomationTrigger.Olusturuldu, workItem.Id, ct);
 
         return Result<long>.Success(workItem.Id);
     }
@@ -176,6 +217,7 @@ public class WorkItemService : IWorkItemService
         });
 
         await _db.SaveChangesAsync(ct);
+        await _automation.RunAsync(AutomationTrigger.DurumGuncellendi, workItem.Id, ct);
         return Result.Success();
     }
 
@@ -240,20 +282,69 @@ public class WorkItemService : IWorkItemService
         var tenantId = _currentUser.TenantId ?? throw new InvalidOperationException("Aktif kiracı bulunamadı.");
         var userId = _currentUser.UserId ?? throw new InvalidOperationException("Aktif kullanıcı bulunamadı.");
 
-        var exists = await _db.WorkItems.AnyAsync(w => w.Id == workItemId, ct);
-        if (!exists) return Result.Fail("Kayıt bulunamadı.");
+        var workItem = await _db.WorkItems.FirstOrDefaultAsync(w => w.Id == workItemId, ct);
+        if (workItem is null) return Result.Fail("Kayıt bulunamadı.");
 
-        _db.Comments.Add(new Comment
+        var comment = new Comment
         {
             TenantId = tenantId,
             WorkItemId = workItemId,
             AuthorUserId = userId,
             Body = body.Trim(),
             CreatedAtUtc = DateTime.UtcNow
-        });
+        };
+        _db.Comments.Add(comment);
         await _db.SaveChangesAsync(ct);
+
+        // @kullanici_adi etiketlerini ayıkla, eşleşen kullanıcılara bildirim gönder.
+        var mentionedUserNames = Regex.Matches(body, @"@([A-Za-z0-9._\-]{2,256})")
+            .Select(m => m.Groups[1].Value.ToUpperInvariant())
+            .Distinct()
+            .ToList();
+
+        if (mentionedUserNames.Count > 0)
+        {
+            var mentioned = await _db.Users
+                .Where(u => u.TenantId == tenantId && u.NormalizedUserName != null
+                            && mentionedUserNames.Contains(u.NormalizedUserName))
+                .Select(u => new { u.Id, u.FirstName, u.LastName })
+                .ToListAsync(ct);
+
+            foreach (var mu in mentioned)
+            {
+                _db.CommentMentions.Add(new CommentMention { CommentId = comment.Id, MentionedUserId = mu.Id });
+            }
+            if (mentioned.Count > 0) await _db.SaveChangesAsync(ct);
+
+            var authorName = await _db.Users.Where(u => u.Id == userId)
+                .Select(u => u.FirstName + " " + u.LastName).FirstOrDefaultAsync(ct) ?? "Bir kullanıcı";
+
+            foreach (var mu in mentioned.Where(m => m.Id != userId))
+            {
+                await _notify.NotifyAsync(mu.Id,
+                    "Bir yorumda etiketlendiniz",
+                    $"{authorName}: {Trim(body, 120)}",
+                    $"/WorkItems/Details/{workItemId}",
+                    NotificationType.Yorum, ct);
+            }
+        }
+
         return Result.Success();
     }
+
+    public async Task<IReadOnlyList<SubtaskDto>> GetSubtasksAsync(long parentId, CancellationToken ct = default)
+    {
+        return await _db.WorkItems.AsNoTracking()
+            .Where(w => w.ParentWorkItemId == parentId)
+            .OrderBy(w => w.Id)
+            .Select(w => new SubtaskDto(
+                w.Id, w.Key, w.Title, w.CurrentState.Name, w.CurrentState.ColorHex,
+                w.CurrentState.Category == StateCategory.Tamamlandi))
+            .ToListAsync(ct);
+    }
+
+    private static string Trim(string s, int max) =>
+        s.Length <= max ? s : s.Substring(0, max) + "…";
 
     public async Task<Result> DeleteAsync(long workItemId, CancellationToken ct = default)
     {

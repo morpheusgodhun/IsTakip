@@ -11,7 +11,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddSignalR();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<IsTakip.Application.Common.INotificationService, IsTakip.Web.Services.NotificationService>();
+builder.Services.AddHttpClient<IsTakip.Application.Common.IAiAssistant, IsTakip.Infrastructure.Services.GeminiAiAssistant>();
 builder.Services.AddSingleton<JwtTokenService>();
 
 builder.Services.AddInfrastructure(builder.Configuration);
@@ -66,6 +69,7 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapControllers(); // API attribute route'ları
+app.MapHub<IsTakip.Web.Hubs.NotificationHub>("/hubs/notifications");
 
 // Başlangıçta admin parolasını ata (SQL seed verisi yüklendiyse).
 using (var scope = app.Services.CreateScope())

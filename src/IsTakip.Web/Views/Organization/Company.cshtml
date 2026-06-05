@@ -1,0 +1,15 @@
+@model CompanyFormVM
+@{ ViewData["Title"] = Model.Id == 0 ? "Yeni Şirket" : "Şirket Düzenle"; }
+<div class="breadcrumbs"><a asp-controller="Home" asp-action="Index">İş Yönetimi</a><span class="sep">/</span><a asp-action="Index">Organizasyon</a><span class="sep">/</span><span>Şirket</span></div>
+<h1 class="page-title">@(Model.Id == 0 ? "Yeni şirket" : "Şirket düzenle")</h1>
+<div class="card card-pad" style="max-width:560px">
+    <form asp-action="Company" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        @if (!ViewData.ModelState.IsValid) { <div class="form-errors" asp-validation-summary="All"></div> }
+        <div class="field"><label asp-for="Name">Şirket Adı<span class="req">*</span></label><input asp-for="Name" class="input" /></div>
+        <div class="field"><label asp-for="TaxNumber">Vergi Numarası</label><input asp-for="TaxNumber" class="input" /></div>
+        <label style="display:flex;align-items:center;gap:8px;margin-bottom:16px"><input type="checkbox" asp-for="IsActive" style="width:16px;height:16px" /> Aktif</label>
+        <div style="display:flex;gap:10px"><button type="submit" class="btn btn-primary">Kaydet</button><a asp-action="Index" class="btn btn-subtle">Vazgeç</a></div>
+    </form>
+</div>

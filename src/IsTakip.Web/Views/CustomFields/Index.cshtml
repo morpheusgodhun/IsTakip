@@ -1,0 +1,30 @@
+@model List<CustomFieldListItemVM>
+@{ ViewData["Title"] = "Form Alanları"; }
+<div class="breadcrumbs"><a asp-controller="Home" asp-action="Index">İş Yönetimi</a><span class="sep">/</span><span>Form Tasarımcısı</span></div>
+<div class="page-head-row">
+    <h1 class="page-title">Form Tasarımcısı</h1>
+    <a class="btn btn-primary" asp-action="Create">+ Yeni Alan</a>
+</div>
+<p class="muted" style="margin-top:-8px">Bu alanlar görev oluşturma formunda dinamik olarak görünür. İK / Satın Alma gibi talep formları buradan tasarlanır.</p>
+<table class="issue-table">
+    <thead><tr><th>Alan</th><th style="width:140px">Tür</th><th style="width:110px">Zorunlu</th><th style="width:160px">Kapsam</th><th style="width:90px">Seçenek</th><th style="width:160px"></th></tr></thead>
+    <tbody>
+        @if (!Model.Any()) { <tr><td colspan="6"><div class="table-empty">Henüz alan tanımlanmadı.</div></td></tr> }
+        @foreach (var f in Model)
+        {
+            <tr>
+                <td><strong>@f.Name</strong></td>
+                <td>@f.FieldTypeName</td>
+                <td>@(f.IsRequired ? "Evet" : "Hayır")</td>
+                <td>@f.Scope</td>
+                <td>@f.OptionCount</td>
+                <td>
+                    <div style="display:flex;gap:6px;justify-content:flex-end">
+                        <a class="btn btn-subtle" asp-action="Edit" asp-route-id="@f.Id">Düzenle</a>
+                        <form asp-action="Delete" asp-route-id="@f.Id" method="post" onsubmit="return confirm('Silinsin mi?');">@Html.AntiForgeryToken()<button class="btn btn-default" style="color:#AE2A19">Sil</button></form>
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

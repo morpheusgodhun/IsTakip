@@ -1,0 +1,60 @@
+@model RoleEditVM
+@{
+    var isNew = Model.Id == 0;
+    ViewData["Title"] = isNew ? "Yeni Rol" : "Rol Düzenle";
+}
+<div class="breadcrumbs">
+    <a asp-controller="Home" asp-action="Index">İş Yönetimi</a>
+    <span class="sep">/</span><a asp-action="Index">Roller</a>
+    <span class="sep">/</span><span>@(isNew ? "Yeni rol" : Model.Name)</span>
+</div>
+<h1 class="page-title">@(isNew ? "Yeni rol" : "Rol düzenle")</h1>
+
+<form asp-action="Edit" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="form-errors" asp-validation-summary="All"></div>
+    }
+
+    <div class="card card-pad" style="max-width:760px;margin-bottom:20px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div class="field">
+                <label asp-for="Name">Rol Adı<span class="req">*</span></label>
+                <input asp-for="Name" class="input" placeholder="Örn. Muhasebe Uzmanı" />
+            </div>
+            <div class="field">
+                <label asp-for="Description">Açıklama</label>
+                <input asp-for="Description" class="input" />
+            </div>
+        </div>
+        @if (Model.IsSystem)
+        {
+            <div class="muted" style="font-size:13px">Bu bir sistem rolüdür; silinemez ancak izinleri düzenlenebilir.</div>
+        }
+    </div>
+
+    <h2 style="font-size:16px;margin-bottom:12px">İzinler</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px">
+        @foreach (var g in Model.Groups)
+        {
+            <div class="card card-pad">
+                <div class="panel-title" style="margin-bottom:10px">@g.Module</div>
+                @foreach (var p in g.Permissions)
+                {
+                    var check = Model.SelectedPermissionIds.Contains(p.Id);
+                    <label style="display:flex;align-items:center;gap:10px;padding:6px 0;cursor:pointer">
+                        <input type="checkbox" name="SelectedPermissionIds" value="@p.Id" checked="@check" style="width:16px;height:16px" />
+                        <span>@p.DisplayName</span>
+                    </label>
+                }
+            </div>
+        }
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:20px">
+        <button type="submit" class="btn btn-primary">Kaydet</button>
+        <a asp-action="Index" class="btn btn-subtle">Vazgeç</a>
+    </div>
+</form>

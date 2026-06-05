@@ -1,0 +1,16 @@
+@model InventoryAssignVM
+@{ ViewData["Title"] = "Zimmetle"; }
+<div class="breadcrumbs"><a asp-controller="Home" asp-action="Index">İş Yönetimi</a><span class="sep">/</span><a asp-action="Index">Envanter</a><span class="sep">/</span><span>Zimmetle</span></div>
+<h1 class="page-title">Zimmetle / Teslim Et</h1>
+<div class="card card-pad" style="max-width:560px">
+    <p class="muted" style="margin-top:0">Kalem: <strong>@Model.ItemName</strong></p>
+    <form asp-action="Assign" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="ItemId" />
+        @if (!ViewData.ModelState.IsValid) { <div class="form-errors" asp-validation-summary="All"></div> }
+        <div class="field"><label asp-for="AssignedToUserId">Teslim Edilen Kişi<span class="req">*</span></label><select asp-for="AssignedToUserId" asp-items="Model.Users" class="select"><option value="">Seçin</option></select></div>
+        <div class="field"><label asp-for="AssignedByUserId">Teslim Eden</label><select asp-for="AssignedByUserId" asp-items="Model.Users" class="select"><option value="">Seçin</option></select></div>
+        <div class="field"><label asp-for="Notes">Not</label><textarea asp-for="Notes" class="input" rows="2"></textarea></div>
+        <div style="display:flex;gap:10px"><button type="submit" class="btn btn-primary">Zimmetle</button><a asp-action="Details" asp-route-id="@Model.ItemId" class="btn btn-subtle">Vazgeç</a></div>
+    </form>
+</div>

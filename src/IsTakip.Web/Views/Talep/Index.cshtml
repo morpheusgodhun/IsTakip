@@ -1,0 +1,47 @@
+@model TalepIndexVM
+@{ ViewData["Title"] = "Talepler"; }
+<div class="breadcrumbs"><a asp-controller="Home" asp-action="Index">İş Yönetimi</a><span class="sep">/</span><span>Talepler</span></div>
+<h1 class="page-title">Talepler (İK & Satın Alma)</h1>
+<p class="muted" style="margin-top:-8px">Talepler ilgili türde kayıt olarak açılır; form alanları otomatik gelir, onay sürecini kayıt detayından başlatabilirsiniz.</p>
+
+@if (!Model.Types.Any())
+{
+    <div class="card card-pad"><div class="table-empty">Talep türleri bulunamadı. Uygulama ilk açılışta bunları otomatik oluşturur; admin ile giriş yapıp sayfayı yenileyin.</div></div>
+}
+else
+{
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-bottom:24px">
+        @foreach (var t in Model.Types)
+        {
+            <div class="card card-pad" style="display:flex;flex-direction:column;gap:10px">
+                <div class="cell-flex">
+                    <span class="type-icon" style="background:@(t.Color ?? "#0C66E4")"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></span>
+                    <strong>@t.Name</strong>
+                </div>
+                <a class="btn btn-primary" asp-controller="WorkItems" asp-action="Create" asp-route-typeId="@t.Id">Talep Oluştur</a>
+            </div>
+        }
+    </div>
+}
+
+<h2 style="font-size:16px;margin-bottom:12px">Taleplerim</h2>
+<table class="issue-table">
+    <thead><tr><th style="width:90px">No</th><th>Başlık</th><th style="width:150px">Tür</th><th style="width:130px">Durum</th><th style="width:150px">Onay</th><th style="width:140px">Tarih</th></tr></thead>
+    <tbody>
+        @if (!Model.MyRequests.Any())
+        {
+            <tr><td colspan="6"><div class="table-empty">Henüz talebiniz yok.</div></td></tr>
+        }
+        @foreach (var r in Model.MyRequests)
+        {
+            <tr>
+                <td><a asp-controller="WorkItems" asp-action="Details" asp-route-id="@r.Id" class="issue-key">@r.Key</a></td>
+                <td>@r.Title</td>
+                <td>@r.TypeName</td>
+                <td><span class="lozenge" style="--lz:@(r.StateColor ?? "#5E6C84")">@r.StateName</span></td>
+                <td><span class="lozenge" style="--lz:@r.ApprovalColor">@r.ApprovalText</span></td>
+                <td class="muted">@r.CreatedAtUtc.ToLocalTime().ToString("dd MMM yyyy")</td>
+            </tr>
+        }
+    </tbody>
+</table>

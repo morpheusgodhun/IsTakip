@@ -1,0 +1,27 @@
+@model List<MyApprovalRowVM>
+@{ ViewData["Title"] = "Onaylarım"; }
+<div class="breadcrumbs"><a asp-controller="Home" asp-action="Index">İş Yönetimi</a><span class="sep">/</span><span>Onaylarım</span></div>
+<h1 class="page-title">Onaylarım</h1>
+@if (!Model.Any())
+{
+    <div class="card card-pad"><div class="table-empty">Bekleyen onayınız yok.</div></div>
+}
+@foreach (var a in Model)
+{
+    <div class="card card-pad" style="margin-bottom:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+            <div>
+                <a asp-controller="WorkItems" asp-action="Details" asp-route-id="@a.WorkItemId"><strong>@a.WorkItemKey</strong></a>
+                <span>· @a.Title</span>
+                <div class="muted" style="font-size:12px">@a.StepOrder. adım · @a.RequestedAtUtc.ToLocalTime().ToString("dd MMM yyyy HH:mm")</div>
+            </div>
+            <form asp-action="Decide" method="post" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="stepId" value="@a.StepId" />
+                <input type="text" name="comment" class="input" placeholder="Yorum (opsiyonel)" style="width:220px" />
+                <button type="submit" name="approve" value="true" class="btn btn-primary">Onayla</button>
+                <button type="submit" name="approve" value="false" class="btn btn-default" style="color:#AE2A19">Reddet</button>
+            </form>
+        </div>
+    </div>
+}

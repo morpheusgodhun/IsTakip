@@ -25,6 +25,14 @@ public class CreateWorkItemViewModel
     [Display(Name = "Tür")]
     public long WorkItemTypeId { get; set; }
 
+    // Alt görev olarak oluşturuluyorsa üst görevin Id'si.
+    public long? ParentWorkItemId { get; set; }
+    public string? ParentKey { get; set; }
+
+    // Form Tasarımcısı ile tanımlanan dinamik alanlar.
+    public List<CustomFieldInputVM> CustomFieldInputs { get; set; } = new();
+    public Dictionary<long, string?> CustomFields { get; set; } = new();
+
     [Required(ErrorMessage = "Başlık zorunludur.")]
     [StringLength(300)]
     [Display(Name = "Başlık")]
@@ -65,4 +73,19 @@ public class WorkItemDetailsPageVM
     public IReadOnlyList<WorkItemStateOptionDto> States { get; set; } = Array.Empty<WorkItemStateOptionDto>();
     public IReadOnlyList<CommentDto> Comments { get; set; } = Array.Empty<CommentDto>();
     public bool IsManager { get; set; }
+    public IReadOnlyList<SubtaskDto> Subtasks { get; set; } = Array.Empty<SubtaskDto>();
+    public List<CustomFieldValueVM> CustomFields { get; set; } = new();
+    public ApprovalInfoVM? Approval { get; set; }
+    public List<AttachmentVM> Attachments { get; set; } = new();
+    public string? SlaText { get; set; }
+    public string SlaColor { get; set; } = "#5E6C84";
+}
+
+public class AttachmentVM
+{
+    public long Id { get; set; }
+    public string FileName { get; set; } = default!;
+    public string SizeText { get; set; } = default!;
+    public string? UploaderName { get; set; }
+    public DateTime UploadedAtUtc { get; set; }
 }

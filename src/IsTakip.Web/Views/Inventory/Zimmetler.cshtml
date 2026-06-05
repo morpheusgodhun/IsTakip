@@ -1,0 +1,21 @@
+@model ZimmetlerVM
+@{ ViewData["Title"] = "Zimmet Listesi"; }
+<div class="breadcrumbs"><a asp-controller="Home" asp-action="Index">İş Yönetimi</a><span class="sep">/</span><a asp-action="Index">Envanter</a><span class="sep">/</span><span>Zimmet Listesi</span></div>
+<div class="page-head-row"><h1 class="page-title">Kimde Ne Var?</h1><a class="btn btn-default" asp-action="PersonelIade">Personel İadesi</a></div>
+<p class="muted" style="margin-top:-8px">Aktif zimmetler (iade edilmemiş kalemler).</p>
+<table class="issue-table">
+    <thead><tr><th style="width:220px">Kişi</th><th>Kalem</th><th style="width:140px">Kod</th><th style="width:150px">Kategori</th><th style="width:150px">Teslim Tarihi</th></tr></thead>
+    <tbody>
+        @if (!Model.Rows.Any()) { <tr><td colspan="5"><div class="table-empty">Aktif zimmet yok.</div></td></tr> }
+        @foreach (var r in Model.Rows)
+        {
+            <tr>
+                <td><span class="cell-flex"><span class="avatar sm" style="background:@UiHelpers.AvatarColor(r.UserName)">@UiHelpers.Initials(r.UserName)</span>@r.UserName</span></td>
+                <td><a asp-action="Details" asp-route-id="@r.ItemId">@r.ItemName</a></td>
+                <td>@(r.Code ?? "—")</td>
+                <td>@(r.CategoryName ?? "—")</td>
+                <td class="muted">@r.AssignedAtUtc.ToLocalTime().ToString("dd MMM yyyy")</td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,35 @@
+@model CalendarVM
+@{ ViewData["Title"] = "Takvim"; var gunler = new[]{"Pzt","Sal","Çar","Per","Cum","Cmt","Paz"}; }
+<div class="breadcrumbs"><a asp-controller="Home" asp-action="Index">İş Yönetimi</a><span class="sep">/</span><span>Takvim</span></div>
+<div class="page-head-row">
+    <h1 class="page-title">@Model.MonthName</h1>
+    <div style="display:flex;gap:8px">
+        <a class="btn btn-default" asp-action="Index" asp-route-year="@Model.PrevYear" asp-route-month="@Model.PrevMonth">‹ Önceki</a>
+        <a class="btn btn-default" asp-action="Index">Bugün</a>
+        <a class="btn btn-default" asp-action="Index" asp-route-year="@Model.NextYear" asp-route-month="@Model.NextMonth">Sonraki ›</a>
+    </div>
+</div>
+<div class="cal-grid cal-head">
+    @foreach (var g in gunler) { <div class="cal-dow">@g</div> }
+</div>
+<div class="cal-grid">
+    @foreach (var d in Model.Days)
+    {
+        if (d.Date == null)
+        {
+            <div class="cal-cell cal-empty"></div>
+        }
+        else
+        {
+            <div class="cal-cell @(d.IsToday ? "cal-today" : "")">
+                <div class="cal-daynum">@d.Date.Value.Day</div>
+                @foreach (var it in d.Items)
+                {
+                    <a asp-controller="WorkItems" asp-action="Details" asp-route-id="@it.Id" class="cal-item" style="border-left:3px solid @(it.Color ?? "#0C66E4");@(it.IsDone ? "opacity:.6;text-decoration:line-through" : "")" title="@it.Key · @it.Title">
+                        <span class="cal-item-key">@it.Key</span> @it.Title
+                    </a>
+                }
+            </div>
+        }
+    }
+</div>

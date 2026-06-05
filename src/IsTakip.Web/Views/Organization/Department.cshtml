@@ -1,0 +1,16 @@
+@model DepartmentFormVM
+@{ ViewData["Title"] = Model.Id == 0 ? "Yeni Departman" : "Departman Düzenle"; }
+<div class="breadcrumbs"><a asp-controller="Home" asp-action="Index">İş Yönetimi</a><span class="sep">/</span><a asp-action="Index">Organizasyon</a><span class="sep">/</span><span>Departman</span></div>
+<h1 class="page-title">@(Model.Id == 0 ? "Yeni departman" : "Departman düzenle")</h1>
+<div class="card card-pad" style="max-width:560px">
+    <form asp-action="Department" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        @if (!ViewData.ModelState.IsValid) { <div class="form-errors" asp-validation-summary="All"></div> }
+        <div class="field"><label asp-for="Name">Departman Adı<span class="req">*</span></label><input asp-for="Name" class="input" /></div>
+        <div class="field"><label asp-for="BranchId">Şube</label><select asp-for="BranchId" asp-items="Model.Branches" class="select"><option value="">Şube seçin</option></select></div>
+        <div class="field"><label asp-for="ManagerUserId">Departman Müdürü</label><select asp-for="ManagerUserId" asp-items="Model.Users" class="select"><option value="">Müdür seçin</option></select></div>
+        <label style="display:flex;align-items:center;gap:8px;margin-bottom:16px"><input type="checkbox" asp-for="IsActive" style="width:16px;height:16px" /> Aktif</label>
+        <div style="display:flex;gap:10px"><button type="submit" class="btn btn-primary">Kaydet</button><a asp-action="Index" class="btn btn-subtle">Vazgeç</a></div>
+    </form>
+</div>

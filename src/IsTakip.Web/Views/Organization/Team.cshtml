@@ -1,0 +1,15 @@
+@model TeamFormVM
+@{ ViewData["Title"] = Model.Id == 0 ? "Yeni Takım" : "Takım Düzenle"; }
+<div class="breadcrumbs"><a asp-controller="Home" asp-action="Index">İş Yönetimi</a><span class="sep">/</span><a asp-action="Index">Organizasyon</a><span class="sep">/</span><span>Takım</span></div>
+<h1 class="page-title">@(Model.Id == 0 ? "Yeni takım" : "Takım düzenle")</h1>
+<div class="card card-pad" style="max-width:560px">
+    <form asp-action="Team" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        @if (!ViewData.ModelState.IsValid) { <div class="form-errors" asp-validation-summary="All"></div> }
+        <div class="field"><label asp-for="Name">Takım Adı<span class="req">*</span></label><input asp-for="Name" class="input" /></div>
+        <div class="field"><label asp-for="DepartmentId">Departman</label><select asp-for="DepartmentId" asp-items="Model.Departments" class="select"><option value="">Departman seçin</option></select></div>
+        <div class="field"><label asp-for="LeadUserId">Takım Lideri</label><select asp-for="LeadUserId" asp-items="Model.Users" class="select"><option value="">Lider seçin</option></select></div>
+        <div style="display:flex;gap:10px"><button type="submit" class="btn btn-primary">Kaydet</button><a asp-action="Index" class="btn btn-subtle">Vazgeç</a></div>
+    </form>
+</div>

@@ -30,6 +30,11 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, long>
     public DbSet<Tenant> Tenants => Set<Tenant>();
     public DbSet<SystemSetting> SystemSettings => Set<SystemSetting>();
     public DbSet<Permission> Permissions => Set<Permission>();
+    public DbSet<InventoryCategory> InventoryCategories => Set<InventoryCategory>();
+    public DbSet<InventoryItem> InventoryItems => Set<InventoryItem>();
+    public DbSet<InventoryAssignment> InventoryAssignments => Set<InventoryAssignment>();
+    public DbSet<InventoryCount> InventoryCounts => Set<InventoryCount>();
+    public DbSet<InventoryCountLine> InventoryCountLines => Set<InventoryCountLine>();
     public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<UserSession> UserSessions => Set<UserSession>();
@@ -166,6 +171,12 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, long>
         b.Entity<Comment>().HasOne(c => c.WorkItem).WithMany(w => w.Comments).HasForeignKey(c => c.WorkItemId);
         b.Entity<Project>().HasOne(p => p.Lead).WithMany().HasForeignKey(p => p.LeadUserId);
         b.Entity<KbCategory>().HasOne(k => k.Parent).WithMany().HasForeignKey(k => k.ParentCategoryId);
+
+        // Bu tabloların şemasında bazı audit kolonları yok (entity AuditableTenantEntity'den
+        // türese de). EF'in olmayan kolonlara yazmasını engellemek için bunları yok say.
+        // (CreatedAtUtc Companies/Projects'te var, korunur.)
+        b.Entity<Company>().Ignore(x => x.CreatedByUserId).Ignore(x => x.UpdatedAtUtc).Ignore(x => x.UpdatedByUserId);
+        b.Entity<Project>().Ignore(x => x.UpdatedByUserId);
     }
 
     /// <summary>

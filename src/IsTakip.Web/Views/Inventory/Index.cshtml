@@ -1,0 +1,56 @@
+@model InventoryIndexVM
+@{ ViewData["Title"] = "Envanter"; }
+<div class="breadcrumbs"><a asp-controller="Home" asp-action="Index">İş Yönetimi</a><span class="sep">/</span><span>Envanter</span></div>
+<div class="page-head-row">
+    <h1 class="page-title">Envanter</h1>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <a class="btn btn-default" asp-action="Categories">Kategoriler</a>
+        <a class="btn btn-default" asp-action="Zimmetler">Zimmet Listesi</a>
+        <a class="btn btn-default" asp-action="PersonelIade">Personel İadesi</a>
+        <a class="btn btn-default" asp-action="Sayim">Sayım</a>
+        <a class="btn btn-primary" asp-action="ItemEdit">+ Yeni Kalem</a>
+    </div>
+</div>
+
+<div class="stat-grid" style="margin-bottom:16px">
+    <div class="stat"><span class="stat-ic" style="background:#6554C0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7l-8-4-8 4 8 4 8-4zM4 7v10l8 4 8-4V7"/></svg></span><div><div class="stat-num">@Model.TotalCount</div><div class="stat-lbl">Toplam kalem</div></div></div>
+    <div class="stat"><span class="stat-ic" style="background:#0C66E4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></span><div><div class="stat-num">@Model.AssignedCount</div><div class="stat-lbl">Zimmetli</div></div></div>
+    <div class="stat"><span class="stat-ic" style="background:#22A06B"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7l-8-4-8 4 8 4 8-4z"/></svg></span><div><div class="stat-num">@Model.AvailableCount</div><div class="stat-lbl">Depoda</div></div></div>
+</div>
+
+<form method="get" asp-action="Index" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+    <input type="text" name="q" value="@Model.Q" class="input" placeholder="Ad / kod / seri no ara" style="max-width:240px" />
+    <select name="categoryId" asp-items="Model.Categories" class="select" style="max-width:200px"><option value="">Tüm kategoriler</option></select>
+    <select name="status" asp-items="Model.Statuses" class="select" style="max-width:180px"><option value="">Tüm durumlar</option></select>
+    <button type="submit" class="btn btn-default">Filtrele</button>
+</form>
+
+<table class="issue-table">
+    <thead><tr><th style="width:120px">Kod</th><th>Ad</th><th style="width:140px">Kategori</th><th style="width:120px">Durum</th><th style="width:160px">Zimmetli Kişi</th><th style="width:240px"></th></tr></thead>
+    <tbody>
+        @if (!Model.Items.Any()) { <tr><td colspan="6"><div class="table-empty">Kayıt yok.</div></td></tr> }
+        @foreach (var i in Model.Items)
+        {
+            <tr>
+                <td>@(string.IsNullOrEmpty(i.Code) ? (i.SerialNo ?? "—") : i.Code)</td>
+                <td><a asp-action="Details" asp-route-id="@i.Id"><strong>@i.Name</strong></a></td>
+                <td>@(i.CategoryName ?? "—")</td>
+                <td><span class="lozenge" style="--lz:@i.StatusColor">@i.StatusText</span></td>
+                <td>@(i.HolderName ?? "—")</td>
+                <td>
+                    <div style="display:flex;gap:6px;justify-content:flex-end">
+                        @if (i.Status == 2)
+                        {
+                            <form asp-action="Return" asp-route-itemId="@i.Id" method="post" onsubmit="return confirm('İade alınsın mı?');">@Html.AntiForgeryToken()<button class="btn btn-default" type="submit">İade Al</button></form>
+                        }
+                        else
+                        {
+                            <a class="btn btn-subtle" asp-action="Assign" asp-route-id="@i.Id">Zimmetle</a>
+                        }
+                        <a class="btn btn-subtle" asp-action="ItemEdit" asp-route-id="@i.Id">Düzenle</a>
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -14,6 +14,14 @@
 <div class="card card-pad" style="max-width:720px">
     <form asp-action="Create" method="post">
         @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="ParentWorkItemId" />
+        @if (Model.ParentWorkItemId != null)
+        {
+            <div class="flash" style="background:var(--ds-brand-subtle);border-color:#8FB8F6;color:#0747A6">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                <strong>@Model.ParentKey</strong> kaydının alt görevi olarak oluşturuluyor.
+            </div>
+        }
         @if (!ViewData.ModelState.IsValid)
         {
             <div class="form-errors" asp-validation-summary="All"></div>
@@ -62,6 +70,44 @@
                 <input asp-for="DueDate" type="date" class="input" />
             </div>
         </div>
+
+        @if (Model.CustomFieldInputs.Any())
+        {
+            <div style="border-top:1px solid var(--ds-border);margin:20px 0 4px;padding-top:16px">
+                <div class="panel-title" style="margin-bottom:12px">Ek Alanlar</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                    @foreach (var cf in Model.CustomFieldInputs)
+                    {
+                        var nm = $"CustomFields[{cf.Id}]";
+                        <div class="field">
+                            <label>@cf.Name @if (cf.IsRequired) { <span class="req">*</span> }</label>
+                            @switch (cf.FieldType)
+                            {
+                                case IsTakip.Domain.Common.CustomFieldType.Sayi:
+                                    <input type="number" name="@nm" class="input" />
+                                    break;
+                                case IsTakip.Domain.Common.CustomFieldType.Tarih:
+                                    <input type="date" name="@nm" class="input" />
+                                    break;
+                                case IsTakip.Domain.Common.CustomFieldType.EvetHayir:
+                                    <select name="@nm" class="select"><option value="">Seçin</option><option value="Evet">Evet</option><option value="Hayır">Hayır</option></select>
+                                    break;
+                                case IsTakip.Domain.Common.CustomFieldType.Secim:
+                                case IsTakip.Domain.Common.CustomFieldType.CokluSecim:
+                                    <select name="@nm" class="select"><option value="">Seçin</option>@foreach (var o in cf.Options) { <option value="@o">@o</option> }</select>
+                                    break;
+                                case IsTakip.Domain.Common.CustomFieldType.Kullanici:
+                                    <select name="@nm" class="select" asp-items="Model.Users"><option value="">Seçin</option></select>
+                                    break;
+                                default:
+                                    <input type="text" name="@nm" class="input" />
+                                    break;
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        }
 
         <div style="display:flex;gap:10px;margin-top:8px">
             <button type="submit" class="btn btn-primary">Oluştur</button>

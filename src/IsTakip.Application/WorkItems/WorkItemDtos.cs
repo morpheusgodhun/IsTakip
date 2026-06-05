@@ -33,6 +33,8 @@ public record WorkItemDetailDto(
 public class CreateWorkItemRequest
 {
     public long WorkItemTypeId { get; set; }
+    public long? ParentWorkItemId { get; set; }
+    public Dictionary<long, string?> CustomFields { get; set; } = new();
     public string Title { get; set; } = default!;
     public string? Description { get; set; }
     public long? PriorityId { get; set; }
@@ -61,3 +63,6 @@ public record WorkItemStateOptionDto(long Id, string Name, IsTakip.Domain.Common
 
 /// <summary>Bir iş kaydındaki yorum.</summary>
 public record CommentDto(long Id, string AuthorName, string Body, DateTime CreatedAtUtc);
+
+/// <summary>Alt görev özeti (detay sayfasında listelenir).</summary>
+public record SubtaskDto(long Id, string Key, string Title, string StateName, string? StateColor, bool IsDone);

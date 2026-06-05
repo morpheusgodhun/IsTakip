@@ -1,0 +1,28 @@
+@model SayimListVM
+@{ ViewData["Title"] = "Sayım"; }
+<div class="breadcrumbs"><a asp-controller="Home" asp-action="Index">İş Yönetimi</a><span class="sep">/</span><a asp-action="Index">Envanter</a><span class="sep">/</span><span>Sayım</span></div>
+<h1 class="page-title">Envanter Sayımı</h1>
+<div class="card card-pad" style="max-width:520px;margin-bottom:16px">
+    <form asp-action="SayimCreate" method="post" style="display:flex;gap:8px;align-items:flex-end">
+        @Html.AntiForgeryToken()
+        <div class="field" style="flex:1;margin:0"><label>Yeni sayım başlat</label><input type="text" name="name" class="input" placeholder="Örn. 2026 Yıl Sonu Sayımı" /></div>
+        <button type="submit" class="btn btn-primary">Başlat</button>
+    </form>
+    <p class="muted" style="font-size:12px;margin-bottom:0">Sayım başlatıldığında mevcut tüm kalemler listeye eklenir.</p>
+</div>
+<table class="issue-table">
+    <thead><tr><th>Sayım</th><th style="width:160px">Oluşturma</th><th style="width:140px">İlerleme</th><th style="width:120px">Durum</th><th style="width:90px"></th></tr></thead>
+    <tbody>
+        @if (!Model.Counts.Any()) { <tr><td colspan="5"><div class="table-empty">Sayım yok.</div></td></tr> }
+        @foreach (var c in Model.Counts)
+        {
+            <tr>
+                <td><a asp-action="SayimDetay" asp-route-id="@c.Id"><strong>@c.Name</strong></a></td>
+                <td class="muted">@c.CreatedAtUtc.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
+                <td>@c.Found / @c.Total bulundu</td>
+                <td>@if (c.CompletedAtUtc != null) { <span class="lozenge" style="--lz:#22A06B">Tamamlandı</span> } else { <span class="lozenge" style="--lz:#E2B203">Devam ediyor</span> }</td>
+                <td><a class="btn btn-subtle" asp-action="SayimDetay" asp-route-id="@c.Id">Aç</a></td>
+            </tr>
+        }
+    </tbody>
+</table>

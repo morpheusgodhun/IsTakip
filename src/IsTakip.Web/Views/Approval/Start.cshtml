@@ -1,0 +1,21 @@
+@model ApprovalStartVM
+@{ ViewData["Title"] = "Onay Süreci Başlat"; }
+<div class="breadcrumbs"><a asp-controller="Home" asp-action="Index">İş Yönetimi</a><span class="sep">/</span><a asp-controller="WorkItems" asp-action="Details" asp-route-id="@Model.WorkItemId">@Model.WorkItemKey</a><span class="sep">/</span><span>Onay başlat</span></div>
+<h1 class="page-title">Onay Süreci Başlat</h1>
+<div class="card card-pad" style="max-width:560px">
+    <p class="muted" style="margin-top:0">@Model.WorkItemKey · @Model.Title</p>
+    <p style="font-size:13px">Onaycıları sırayla seçin. Onay, 1. sıradan başlayıp her onay sonrası bir sonraki kişiye geçer.</p>
+    <form asp-action="Start" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="WorkItemId" />
+        @if (!ViewData.ModelState.IsValid) { <div class="form-errors" asp-validation-summary="All"></div> }
+        @for (int i = 0; i < 5; i++)
+        {
+            <div class="field">
+                <label>@(i + 1). Onaycı @(i == 0 ? "" : "(opsiyonel)")</label>
+                <select name="ApproverUserIds" asp-items="Model.Users" class="select"><option value="">Seçin</option></select>
+            </div>
+        }
+        <div style="display:flex;gap:10px"><button type="submit" class="btn btn-primary">Süreci Başlat</button><a asp-controller="WorkItems" asp-action="Details" asp-route-id="@Model.WorkItemId" class="btn btn-subtle">Vazgeç</a></div>
+    </form>
+</div>

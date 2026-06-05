@@ -1,0 +1,21 @@
+@model InventoryItemEditVM
+@{ var isNew = Model.Id == 0; ViewData["Title"] = isNew ? "Yeni Kalem" : "Kalem Düzenle"; }
+<div class="breadcrumbs"><a asp-controller="Home" asp-action="Index">İş Yönetimi</a><span class="sep">/</span><a asp-action="Index">Envanter</a><span class="sep">/</span><span>@(isNew ? "Yeni" : Model.Name)</span></div>
+<h1 class="page-title">@(isNew ? "Yeni envanter kalemi" : "Kalem düzenle")</h1>
+<div class="card card-pad" style="max-width:620px">
+    <form asp-action="ItemEdit" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        @if (!ViewData.ModelState.IsValid) { <div class="form-errors" asp-validation-summary="All"></div> }
+        <div class="field"><label asp-for="Name">Envanter Adı<span class="req">*</span></label><input asp-for="Name" class="input" placeholder="Örn. Dell Latitude 5540" /></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div class="field"><label asp-for="CategoryId">Tür / Kategori</label><select asp-for="CategoryId" asp-items="Model.Categories" class="select"><option value="">Seçin</option></select></div>
+            <div class="field"><label asp-for="Status">Durum</label><select asp-for="Status" asp-items="Model.Statuses" class="select"></select></div>
+            <div class="field"><label asp-for="Code">Demirbaş / Zimmet No</label><input asp-for="Code" class="input" /></div>
+            <div class="field"><label asp-for="SerialNo">Seri No</label><input asp-for="SerialNo" class="input" /></div>
+        </div>
+        <div class="field"><label asp-for="Notes">Notlar</label><textarea asp-for="Notes" class="input" rows="3"></textarea></div>
+        <div style="display:flex;gap:10px"><button type="submit" class="btn btn-primary">Kaydet</button><a asp-action="Index" class="btn btn-subtle">Vazgeç</a></div>
+        <p class="muted" style="font-size:12px;margin-bottom:0">Not: Zimmetli kalemlerin durumu "Zimmetle / İade Al" işlemleriyle yönetilir.</p>
+    </form>
+</div>

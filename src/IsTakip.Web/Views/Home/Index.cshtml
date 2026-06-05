@@ -1,57 +1,136 @@
+@model DashboardVM
 @{
     ViewData["Title"] = "Panel";
+    int total = Model.Todo + Model.InProgress + Model.DoneCat;
+    int pct(int n) => total == 0 ? 0 : (int)Math.Round(100.0 * n / total);
+
+    var labels = new Dictionary<string, string>
+    {
+        ["ozet"] = "Özet kartları",
+        ["durum"] = "Durum dağılımı",
+        ["gecikenler"] = "Geciken kayıtlar",
+        ["son"] = "Son kayıtlar"
+    };
+    var allWidgets = new[] { "ozet", "durum", "gecikenler", "son" };
+    var ordered = Model.Layout.Concat(allWidgets.Where(k => !Model.Layout.Contains(k))).ToList();
 }
 <div class="breadcrumbs">
     <a asp-controller="Home" asp-action="Index">İş Yönetimi</a>
-    <span class="sep">/</span>
-    <span>Panel</span>
+    <span class="sep">/</span><span>Panel</span>
 </div>
 <div class="page-head-row">
     <h1 class="page-title">Panel</h1>
-    <a class="btn btn-default" asp-controller="Board" asp-action="Index">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="11" rx="1"/><rect x="17" y="4" width="4" height="14" rx="1"/></svg>
-        Panoya Git
-    </a>
-</div>
-
-<div class="stat-grid">
-    <div class="stat">
-        <span class="stat-ic" style="background:#0C66E4">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
-        </span>
-        <div>
-            <div class="stat-num">@ViewBag.OpenCount</div>
-            <div class="stat-lbl">Açık kayıt</div>
-        </div>
-    </div>
-    <div class="stat">
-        <span class="stat-ic" style="background:#22A06B">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-        </span>
-        <div>
-            <div class="stat-num">@ViewBag.DoneCount</div>
-            <div class="stat-lbl">Tamamlanan</div>
-        </div>
-    </div>
-    <div class="stat">
-        <span class="stat-ic" style="background:#6554C0">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
-        </span>
-        <div>
-            <div class="stat-num">@ViewBag.TypeCount</div>
-            <div class="stat-lbl">Görev türü</div>
-        </div>
+    <div style="display:flex;gap:8px">
+        <button type="button" class="btn btn-subtle" onclick="var e=document.getElementById('dashEdit');e.style.display=(e.style.display==='none'||!e.style.display)?'block':'none'">Düzenle</button>
+        <a class="btn btn-primary" asp-controller="WorkItems" asp-action="Create">+ Yeni Kayıt</a>
+        <a class="btn btn-default" asp-controller="Board" asp-action="Index">Panoya Git</a>
     </div>
 </div>
 
-<div class="card card-pad" style="margin-top:24px;max-width:640px">
-    <div class="panel-title">Hızlı işlemler</div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <a class="btn btn-primary" asp-controller="WorkItems" asp-action="Create">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Yeni Kayıt
-        </a>
-        <a class="btn btn-subtle" asp-controller="WorkItems" asp-action="Index">Tüm görevler</a>
-        <a class="btn btn-subtle" asp-controller="Board" asp-action="Index">İş panosu</a>
-    </div>
+<div id="dashEdit" class="card card-pad" style="display:none;margin-bottom:16px;max-width:520px">
+    <div class="panel-title" style="margin-bottom:6px">Panel düzeni</div>
+    <p class="muted" style="font-size:12px;margin-top:0">Sürükleyerek sırala; göstermek/gizlemek için işaretle.</p>
+    <form asp-action="SaveLayout" method="post" onsubmit="return prepWidgets()">
+        @Html.AntiForgeryToken()
+        <input type="hidden" id="widgetsField" name="widgets" />
+        <ul id="widgetSort" style="list-style:none;padding:0;margin:0 0 14px">
+            @foreach (var key in ordered)
+            {
+                <li data-key="@key" style="display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--ds-border);border-radius:6px;margin-bottom:6px;background:var(--ds-surface)">
+                    <svg style="cursor:grab" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8993A4" stroke-width="2"><circle cx="9" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="18" r="1"/></svg>
+                    <input type="checkbox" class="wchk" @(Model.Layout.Contains(key) ? "checked" : "") style="width:16px;height:16px" />
+                    <span>@labels[key]</span>
+                </li>
+            }
+        </ul>
+        <button type="submit" class="btn btn-primary">Kaydet</button>
+        <button type="button" class="btn btn-subtle" onclick="document.getElementById('dashEdit').style.display='none'">Kapat</button>
+    </form>
 </div>
+
+@foreach (var key in Model.Layout)
+{
+    switch (key)
+    {
+        case "ozet":
+            <div class="stat-grid">
+                <div class="stat"><span class="stat-ic" style="background:#0C66E4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg></span><div><div class="stat-num">@Model.Open</div><div class="stat-lbl">Açık kayıt</div></div></div>
+                <div class="stat"><span class="stat-ic" style="background:#C9372C"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span><div><div class="stat-num">@Model.Overdue</div><div class="stat-lbl">Geciken</div></div></div>
+                <div class="stat"><span class="stat-ic" style="background:#6554C0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span><div><div class="stat-num">@Model.MyOpen</div><div class="stat-lbl">Bana açık</div></div></div>
+                <div class="stat"><span class="stat-ic" style="background:#E2B203"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span><div><div class="stat-num">@Model.MyApprovals</div><div class="stat-lbl">Bekleyen onayım</div></div></div>
+                <div class="stat"><span class="stat-ic" style="background:#22A06B"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span><div><div class="stat-num">@Model.Done</div><div class="stat-lbl">Tamamlanan</div></div></div>
+            </div>
+            break;
+
+        case "durum":
+            <div class="card card-pad" style="margin-top:16px">
+                <div class="panel-title" style="margin-bottom:14px">Durum dağılımı</div>
+                @{
+                    var rows = new[] { ("Yapılacak", Model.Todo, "#5E6C84"), ("Devam Ediyor", Model.InProgress, "#0C66E4"), ("Tamamlandı", Model.DoneCat, "#22A06B") };
+                }
+                @foreach (var (name, count, color) in rows)
+                {
+                    <div style="margin-bottom:12px">
+                        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>@name</span><span class="muted">@count (@pct(count)%)</span></div>
+                        <div style="height:8px;background:var(--ds-surface-sunken);border-radius:4px;overflow:hidden"><div style="height:100%;width:@pct(count)%;background:@color"></div></div>
+                    </div>
+                }
+            </div>
+            break;
+
+        case "gecikenler":
+            <div class="card card-pad" style="margin-top:16px">
+                <div class="panel-title" style="margin-bottom:14px">Geciken kayıtlar</div>
+                @if (!Model.OverdueItems.Any())
+                {
+                    <p class="muted" style="font-size:13px;margin:0">Geciken kayıt yok.</p>
+                }
+                else
+                {
+                    @foreach (var w in Model.OverdueItems)
+                    {
+                        <a asp-controller="WorkItems" asp-action="Details" asp-route-id="@w.Id" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--ds-border);color:var(--ds-text)"><span class="issue-key">@w.Key</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">@w.Title</span><span class="lozenge" style="--lz:#C9372C">@(w.DueDate?.ToString("dd MMM"))</span></a>
+                    }
+                }
+            </div>
+            break;
+
+        case "son":
+            <div class="card card-pad" style="margin-top:16px">
+                <div class="panel-title" style="margin-bottom:10px">Son kayıtlar</div>
+                @if (!Model.Recent.Any())
+                {
+                    <p class="muted" style="font-size:13px;margin:0">Kayıt yok.</p>
+                }
+                else
+                {
+                    @foreach (var w in Model.Recent)
+                    {
+                        <a asp-controller="WorkItems" asp-action="Details" asp-route-id="@w.Id" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--ds-border);color:var(--ds-text)"><span class="issue-key">@w.Key</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">@w.Title</span><span class="lozenge" style="--lz:@(w.StateColor ?? "#5E6C84")">@w.StateName</span></a>
+                    }
+                }
+            </div>
+            break;
+    }
+}
+
+@if (!Model.Layout.Any())
+{
+    <div class="card card-pad"><div class="table-empty">Tüm bileşenler gizli. "Düzenle" ile bileşen ekleyin.</div></div>
+}
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <script>
+        (function () { var el = document.getElementById('widgetSort'); if (el && window.Sortable) new Sortable(el, { animation: 150 }); })();
+        function prepWidgets() {
+            var keys = [];
+            document.querySelectorAll('#widgetSort li').forEach(function (li) {
+                var chk = li.querySelector('.wchk');
+                if (chk && chk.checked) keys.push(li.getAttribute('data-key'));
+            });
+            document.getElementById('widgetsField').value = keys.join(',');
+            return true;
+        }
+    </script>
+}

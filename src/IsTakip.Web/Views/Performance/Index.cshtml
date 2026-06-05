@@ -1,0 +1,21 @@
+@model List<PerformanceRowVM>
+@{ ViewData["Title"] = "Performans"; }
+<div class="breadcrumbs"><a asp-controller="Home" asp-action="Index">İş Yönetimi</a><span class="sep">/</span><span>Performans</span></div>
+<h1 class="page-title">Performans Puanlama</h1>
+<table class="issue-table">
+    <thead><tr><th>Kullanıcı</th><th style="width:90px">Toplam</th><th style="width:110px">Tamamlanan</th><th style="width:90px">Bekleyen</th><th style="width:90px">Geciken</th><th style="width:90px">Puan</th></tr></thead>
+    <tbody>
+        @if (!Model.Any()) { <tr><td colspan="6"><div class="table-empty">Veri yok.</div></td></tr> }
+        @foreach (var r in Model)
+        {
+            <tr>
+                <td><span class="cell-flex"><span class="avatar sm" style="background:@UiHelpers.AvatarColor(r.UserName)">@UiHelpers.Initials(r.UserName)</span>@r.UserName</span></td>
+                <td>@r.Total</td>
+                <td><span class="lozenge" style="--lz:#22A06B">@r.Completed</span></td>
+                <td>@r.Pending</td>
+                <td>@(r.Overdue > 0 ? "" : "")<span class="lozenge" style="--lz:@(r.Overdue > 0 ? "#C9372C" : "#5E6C84")">@r.Overdue</span></td>
+                <td><strong>@r.Score</strong></td>
+            </tr>
+        }
+    </tbody>
+</table>

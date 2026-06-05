@@ -1,0 +1,30 @@
+@model List<AutomationRuleListItemVM>
+@{ ViewData["Title"] = "Otomasyon"; }
+<div class="breadcrumbs"><a asp-controller="Home" asp-action="Index">İş Yönetimi</a><span class="sep">/</span><span>Otomasyon</span></div>
+<div class="page-head-row">
+    <h1 class="page-title">Otomasyon Kuralları</h1>
+    <a class="btn btn-primary" asp-action="Create">+ Yeni Kural</a>
+</div>
+<p class="muted" style="margin-top:-8px">"Eğer ... ise ... yap" mantığı. Görev oluşturulduğunda veya durumu değiştiğinde koşullar değerlendirilir, eşleşen kuralların aksiyonları çalışır.</p>
+<table class="issue-table">
+    <thead><tr><th>Kural</th><th style="width:220px">Tetikleyici</th><th style="width:90px">Koşul</th><th style="width:90px">Aksiyon</th><th style="width:90px">Durum</th><th style="width:160px"></th></tr></thead>
+    <tbody>
+        @if (!Model.Any()) { <tr><td colspan="6"><div class="table-empty">Henüz kural yok.</div></td></tr> }
+        @foreach (var r in Model)
+        {
+            <tr>
+                <td><strong>@r.Name</strong></td>
+                <td>@r.TriggerName</td>
+                <td>@r.ConditionCount</td>
+                <td>@r.ActionCount</td>
+                <td><span class="lozenge" style="--lz:@(r.IsActive ? "#22A06B" : "#5E6C84")">@(r.IsActive ? "Aktif" : "Pasif")</span></td>
+                <td>
+                    <div style="display:flex;gap:6px;justify-content:flex-end">
+                        <a class="btn btn-subtle" asp-action="Edit" asp-route-id="@r.Id">Düzenle</a>
+                        <form asp-action="Delete" asp-route-id="@r.Id" method="post" onsubmit="return confirm('Silinsin mi?');">@Html.AntiForgeryToken()<button class="btn btn-default" style="color:#AE2A19">Sil</button></form>
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

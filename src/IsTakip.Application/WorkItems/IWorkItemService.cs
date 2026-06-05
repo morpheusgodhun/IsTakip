@@ -15,4 +15,5 @@ public interface IWorkItemService
     Task<IReadOnlyList<CommentDto>> GetCommentsAsync(long workItemId, CancellationToken ct = default);
     Task<Result> AddCommentAsync(long workItemId, string body, CancellationToken ct = default);
     Task<Result> DeleteAsync(long workItemId, CancellationToken ct = default);
+    Task<IReadOnlyList<SubtaskDto>> GetSubtasksAsync(long parentId, CancellationToken ct = default);
 }

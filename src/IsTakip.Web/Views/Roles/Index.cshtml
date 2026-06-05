@@ -1,0 +1,56 @@
+@model List<RoleListItemVM>
+@{
+    ViewData["Title"] = "Roller";
+}
+<div class="breadcrumbs">
+    <a asp-controller="Home" asp-action="Index">İş Yönetimi</a>
+    <span class="sep">/</span><span>Roller &amp; Yetkiler</span>
+</div>
+<div class="page-head-row">
+    <h1 class="page-title">Roller &amp; Yetkiler</h1>
+    <a class="btn btn-primary" asp-action="Create">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Yeni Rol
+    </a>
+</div>
+
+<table class="issue-table">
+    <thead>
+        <tr>
+            <th>Rol</th>
+            <th style="width:120px">İzin Sayısı</th>
+            <th style="width:120px">Üye Sayısı</th>
+            <th style="width:260px"></th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (!Model.Any())
+        {
+            <tr><td colspan="4"><div class="table-empty">Rol bulunamadı.</div></td></tr>
+        }
+        @foreach (var r in Model)
+        {
+            <tr>
+                <td>
+                    <div class="cell-flex">
+                        <strong>@r.Name</strong>
+                        @if (r.IsSystem) { <span class="lozenge" style="--lz:#6554C0">Sistem</span> }
+                    </div>
+                    @if (!string.IsNullOrEmpty(r.Description)) { <div class="muted" style="font-size:12px">@r.Description</div> }
+                </td>
+                <td>@r.PermissionCount</td>
+                <td>@r.MemberCount</td>
+                <td>
+                    <div style="display:flex;gap:6px;justify-content:flex-end">
+                        <a class="btn btn-subtle" asp-action="Edit" asp-route-id="@r.Id">Düzenle</a>
+                        <form asp-action="Copy" asp-route-id="@r.Id" method="post">@Html.AntiForgeryToken()<button class="btn btn-subtle" type="submit">Kopyala</button></form>
+                        @if (!r.IsSystem)
+                        {
+                            <form asp-action="Delete" asp-route-id="@r.Id" method="post" onsubmit="return confirm('Bu rolü silmek istiyor musunuz?');">@Html.AntiForgeryToken()<button class="btn btn-default" type="submit" style="color:#AE2A19">Sil</button></form>
+                        }
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
